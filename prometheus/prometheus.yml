@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'transaction-api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: /metrics
+    scheme: http
+    honor_labels: true
+
+  - job_name: 'transaction-consumer'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['consumer:9091']
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: 'rule-engine'
+    static_configs:
+      - targets: ['rule-engine:9092']
+
+  - job_name: 'ml-engine'
+    static_configs:
+      - targets: ['ml-engine:9093']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- extra styles for tab switching -->
+  <style>
+    .page-section { display: none; }
+    .page-section.active-page { display: block; }
+    .admin-sidebar li a.active-link {
+      background: var(--bg-light);
+      color: var(--primary-teal);
+      border-right: 4px solid var(--primary-teal);
+    }
+    .empty-message {
+      padding: 2rem;
+      text-align: center;
+      color: var(--primary-dark);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container" id="app">
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="admin-navbar">
+    <div class="admin-nav-left">
+      <h2>Admin Panel</h2>
+    </div>
+    <div class="admin-nav-center">
+      <span id="adminWelcome">Welcome: -----</span>
+    </div>
+    <div class="admin-nav-right">
+      <button class="logout-btn" id="adminLogoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <!-- ===== LAYOUT ===== -->
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <ul>
+        <li><a href="javascript:void(0)" data-page="overview" class="active-link">Overview</a></li>
+        <li><a href="javascript:void(0)" data-page="data">Data Center</a></li>
+        <li><a href="javascript:void(0)" data-page="ml-correlation">ML/Correlation</a></li>
+        <li><a href="javascript:void(0)" data-page="reports">Reports</a></li>
+        <li><a href="javascript:void(0)" data-page="user-management">User Management</a></li>
+        <li><a href="javascript:void(0)" data-page="sys-health">Sys Health</a></li>
+        <!-- NEW: Audit Trail -->
+        <li><a href="javascript:void(0)" data-page="audit-trail">Audit Trail</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="admin-content" id="adminContent">
+
+      <!-- OVERVIEW -->
+      <div class="page-section active-page" id="page-overview">
+        <div class="overview-header">
+          <h1>System Overview</h1>
+          <button class="refresh-btn" id="overviewRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+        <p class="last-updated" id="overviewLastUpdated">Last updated: —</p>
+
+        <!-- Pipeline Section -->
+        <div class="ov-section">
+          <h2 class="ov-section-title"><i class="fas fa-diagram-project"></i> Data Pipeline</h2>
+          <div class="ov-grid" id="pipelineStats">
+            <div class="ov-card" data-accent="teal">
+              <div class="ov-icon"><i class="fas fa-database"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statRaw">0</p>
+                <h3>Raw Transactions</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="info">
+              <div class="ov-icon"><i class="fas fa-gavel"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statRuled">0</p>
+                <h3>Ruled Transactions</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="danger">
+              <div class="ov-icon"><i class="fas fa-triangle-exclamation"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statBad">0</p>
+                <h3>Bad Records</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="teal-dark">
+              <div class="ov-icon"><i class="fas fa-microchip"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statProcessed">0</p>
+                <h3>Processed (ML)</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Distribution Section -->
+        <div class="ov-section">
+          <h2 class="ov-section-title"><i class="fas fa-shield-halved"></i> Risk Distribution</h2>
+          <div class="ov-grid ov-grid-5" id="riskStats">
+            <div class="ov-card" data-accent="warning">
+              <div class="ov-icon"><i class="fas fa-flag"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statFlagged">0</p>
+                <h3>Flagged</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="danger">
+              <div class="ov-icon"><i class="fas fa-fire"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statHighRisk">0</p>
+                <h3>High Risk</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="danger-deep">
+              <div class="ov-icon"><i class="fas fa-user-secret"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statFraud">0</p>
+                <h3>Fraud</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="purple">
+              <div class="ov-icon"><i class="fas fa-circle-xmark"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statFalsePositive">0</p>
+                <h3>False Positive</h3>
+              </div>
+            </div>
+            <div class="ov-card" data-accent="success">
+              <div class="ov-icon"><i class="fas fa-circle-check"></i></div>
+              <div class="ov-info">
+                <p class="ov-value" id="statNormal">0</p>
+                <h3>Normal</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Insights strip -->
+        <div class="ov-insights">
+          <div class="ov-insight-item">
+            <span class="ov-insight-label"><i class="fas fa-chart-line"></i> Fraud Rate</span>
+            <div class="ov-progress"><div class="ov-progress-bar danger" id="ovFraudRateBar"></div></div>
+            <span class="ov-insight-value" id="ovFraudRateValue">0%</span>
+          </div>
+          <div class="ov-insight-item">
+            <span class="ov-insight-label"><i class="fas fa-flag"></i> Flag Rate</span>
+            <div class="ov-progress"><div class="ov-progress-bar warning" id="ovFlagRateBar"></div></div>
+            <span class="ov-insight-value" id="ovFlagRateValue">0%</span>
+          </div>
+          <div class="ov-insight-item">
+            <span class="ov-insight-label"><i class="fas fa-gears"></i> Processing Coverage</span>
+            <div class="ov-progress"><div class="ov-progress-bar teal" id="ovCoverageBar"></div></div>
+            <span class="ov-insight-value" id="ovCoverageValue">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA CENTER -->
+      <div class="page-section" id="page-data">
+        <div class="data-header">
+          <h1>All Transactions Data</h1>
+          <button class="refresh-btn" id="dataRefreshBtn">Refresh</button>
+        </div>
+        <p class="last-updated" id="dataLastUpdated">Last updated: —</p>
+        <div class="admin-tabs" id="dataTabs">
+          <button class="admin-tab active" data-tab="raw">Raw Transactions</button>
+          <button class="admin-tab" data-tab="ruled">Ruled Transactions</button>
+          <button class="admin-tab" data-tab="bad">Bad Records</button>
+          <button class="admin-tab" data-tab="processed">Processed</button>
+        </div>
+        <div id="dataContent"><div class="loading">Loading...</div></div>
+      </div>
+
+      <!-- ML / CORRELATION -->
+      <div class="page-section" id="page-ml-correlation">
+        <div class="ml-correlation-page">
+          <div class="page-header">
+            <h1>ML x Cross-Channel Correlation</h1>
+          </div>
+
+          <div class="ml-correlation-layout">
+            <!-- LEFT PANEL – Command Center -->
+            <div class="ml-panel command-panel">
+              <div class="panel-header">
+                <h2>Correlation Engine</h2>
+              </div>
+
+              <!-- Rules Table -->
+              <div class="rules-table-wrap">
+                <table class="rules-table">
+                  <thead>
+                    <tr>
+                      <th>Rule</th>
+                      <th>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Peer Fraud</td><td><span class="score-badge">+30</span></td></tr>
+                    <tr><td>Shared IP</td><td><span class="score-badge">+20</span></td></tr>
+                    <tr><td>New Device</td><td><span class="score-badge">+10</span></td></tr>
+                    <tr><td>Cross-Channel</td><td><span class="score-badge">+15</span></td></tr>
+                    <tr><td>Device Fraud</td><td><span class="score-badge">+15</span></td></tr>
+                    <tr><td>Rapid Counterparties</td><td><span class="score-badge">+10</span></td></tr>
+                    <tr><td>Merchant Fraud</td><td><span class="score-badge">+15</span></td></tr>
+                    <tr><td>SIM Fraud</td><td><span class="score-badge">+15</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Formula -->
+              <div class="formula-section">
+                <div class="formula-label">Final Score</div>
+                <div class="formula-code">
+                  <code>final_score = (ml_proba * 100) * 0.7 + correlation_score * 0.3</code>
+                </div>
+              </div>
+
+              <!-- Threshold Indicators -->
+              <div class="threshold-section">
+                <div class="threshold-track">
+                  <span class="threshold-label fraud">Fraud</span>
+                  <div class="threshold-bar">
+                    <span class="threshold-segment fraud" style="width:30%"></span>
+                    <span class="threshold-segment review" style="width:30%"></span>
+                    <span class="threshold-segment normal" style="width:40%"></span>
+                  </div>
+                  <span class="threshold-label normal">Normal</span>
+                </div>
+                <div class="threshold-marks">
+                  <span class="mark fraud"> >= 70</span>
+                  <span class="mark review"> 40 - 69</span>
+                  <span class="mark normal">&lt; 40</span>
+                </div>
+              </div>
+
+              <p class="note">Graph updates continuously - correlation strengthens over time.</p>
+            </div>
+
+            <!-- RIGHT PANEL – Neo4j -->
+            <div class="ml-panel neo4j-panel">
+              <div class="neo4j-graph-bg"></div>
+              <div class="neo4j-content">
+                <h2>Neo4j Graph Explorer</h2>
+                <p>Visualize accounts, devices, IPs, merchants and SIMs - the relationships that drive correlation.</p>
+
+                <div class="neo4j-creds">
+                  <div class="cred-item"><span class="cred-key">URL</span><span class="cred-val">http://localhost:7474</span></div>
+                  <div class="cred-item"><span class="cred-key">Username</span><span class="cred-val">neo4j</span></div>
+                  <div class="cred-item"><span class="cred-key">Password</span><span class="cred-val">********</span></div>
+                </div>
+
+                <button class="neo4j-btn" id="neo4jBtn">
+                  <span class="btn-icon">↗</span> Launch Neo4j Interface
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- REPORTS -->
+      <!-- =================================================================== -->
+      <div class="page-section" id="page-reports">
+        <div class="reports">
+
+          <!-- HEADER -->
+          <div class="reports-header">
+            <div>
+              <h1>Fraud Intelligence Report (Admin)</h1>
+              <p class="source-badge" id="adminReportSourceBadge">Data source: All Sources</p>
+              <p class="last-updated" id="adminReportLastUpdated">Last updated: —</p>
+            </div>
+            <div class="header-actions">
+              <select id="adminReportSource" class="pdf-period-select">
+                <option value="all">All Sources</option>
+              </select>
+              <select id="adminPdfPeriodSelect" class="pdf-period-select">
+                <option value="weekly">Weekly Report</option>
+                <option value="monthly" selected>Monthly Report</option>
+                <option value="yearly">Yearly Report</option>
+              </select>
+              <button class="refresh-btn" id="adminReportsRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+              <button class="pdf-btn" id="adminReportPdfBtn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+          </div>
+
+          <!-- ===== TOP ROW ===== -->
+          <div class="top-row">
+
+            <!-- LEFT: Risk Overview -->
+            <div class="risk-overview">
+              <!-- 4 Summary Cards -->
+              <div class="summary-cards" id="adminSummaryCards">
+                <!-- Rendered by JS -->
+              </div>
+              <!-- Fraud Trend Chart -->
+              <div class="trend-chart-wrapper">
+                <div class="chart-header">
+                  <h3><i class="fas fa-chart-line"></i> Fraud & Suspicious Trend</h3>
+                  <div class="trend-filters">
+                    <button class="trend-filter active" data-period="weekly">Weekly</button>
+                    <button class="trend-filter" data-period="monthly">Monthly</button>
+                    <button class="trend-filter" data-period="yearly">Yearly</button>
+                  </div>
+                </div>
+                <div style="position:relative; height:300px;">
+                  <canvas id="adminFraudTrendChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Fraud Alert + Recent Suspicious -->
+            <div class="right-panel">
+
+              <!-- Fraud Alert Card -->
+              <div class="fraud-alert-card">
+                <h3><i class="fas fa-shield-alt"></i> Fraud Alert</h3>
+                <div class="alert-levels">
+                  <span class="level high"><span class="dot"></span> High</span>
+                  <span class="level medium"><span class="dot"></span> Medium</span>
+                  <span class="level low"><span class="dot"></span> Low</span>
+                </div>
+                <div class="gauge-container">
+                  <div class="gauge-track" id="adminFraudGauge">
+                    <div class="gauge-needle" style="transform: rotate(0deg);"></div>
+                  </div>
+                  <div class="gauge-marks">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                  </div>
+                </div>
+                <div class="gauge-label" id="adminGaugeLabel">Moderate</div>
+                <div class="total-suspicious" id="adminTotalSuspicious">Total Suspicious: 0</div>
+              </div>
+
+              <!-- Recent Suspicious -->
+              <div class="recent-suspicious">
+                <div class="recent-header">
+                  <h3><i class="fas fa-clock"></i> Recent Suspicious</h3>
+                  <button class="view-all-btn" id="adminViewAllBtn">View All →</button>
+                </div>
+                <div id="adminRecentSuspiciousList">
+                  <div class="loading-small">Loading...</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ===== MIDDLE ROW ===== -->
+          <div class="middle-row">
+
+            <!-- LEFT: Rules Bar Chart -->
+            <div class="rules-section">
+              <div class="chart-header">
+                <h3><i class="fas fa-gavel"></i> Rules Triggered</h3>
+                <div class="rules-filters">
+                  <input type="date" id="adminRulesStartDate" />
+                  <input type="date" id="adminRulesEndDate" />
+                  <button class="apply-filter-btn" id="adminRulesApplyBtn">Apply</button>
+                </div>
+              </div>
+              <div style="position:relative; height:160px;">
+                <canvas id="adminRulesBarChart"></canvas>
+              </div>
+            </div>
+
+            <!-- RIGHT: Processed Stats -->
+            <div class="processed-section">
+              <h3><i class="fas fa-chart-bar"></i> Processed Transactions</h3>
+              <div class="chart-container chart-container-bar">
+                <canvas id="adminProcessedBarChart"></canvas>
+              </div>
+              <div class="chart-container chart-container-bubble">
+                <canvas id="adminBubbleChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ===== BOTTOM ROW ===== -->
+          <div class="bottom-row">
+
+            <!-- LEFT: All Suspicious Transactions -->
+            <div class="all-transactions">
+              <div class="all-header">
+                <h3><i class="fas fa-list"></i> All Suspicious Transactions</h3>
+                <div class="all-filters">
+                  <select id="adminVerdictFilter">
+                    <option value="all">All</option>
+                    <option value="fraud">Fraud</option>
+                    <option value="suspicious">Suspicious</option>
+                    <option value="medium">Medium Risk</option>
+                    <option value="false_positive">False Positive</option>
+                  </select>
+                  <select id="adminDateFilterType">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                  <button class="apply-filter-btn" id="adminAllTransactionsApplyBtn">Apply</button>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="suspicious-table" id="adminAllSuspiciousTable">
+                  <thead>
+                    <tr><th>ID</th><th>Risk</th><th>Score</th><th>Rules</th><th>Date</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- RIGHT: Merchants + Peak Hours -->
+            <div class="side-stats">
+              <div class="merchants-card">
+                <h4><i class="fas fa-store"></i> Top Flagged Merchants</h4>
+                <ul id="adminTopMerchantsList"></ul>
+              </div>
+              <div class="peak-hours-card">
+                <h4><i class="fas fa-clock"></i> Peak Fraud Hours</h4>
+                <div id="adminPeakHoursInfo">Loading...</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- USER MANAGEMENT (table layout) -->
+      <div class="page-section" id="page-user-management">
+        <div>
+          <div class="user-management-header">
+            <h1>User Management</h1>
+            <button class="refresh-btn" id="userRefreshBtn">Refresh</button>
+          </div>
+          <p class="last-updated" id="userLastUpdated">Last updated: —</p>
+          <div id="userTableContainer">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SYS HEALTH -->
+      <div class="page-section" id="page-sys-health">
+        <div>
+          <div class="syshealth-header">
+            <h1>System Health</h1>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="refresh-btn" id="healthRefreshBtn">Refresh</button>
+              <button class="csv-btn" id="healthCsvBtn">Download pdf</button>
+            </div>
+          </div>
+          <p class="last-updated" id="healthLastUpdated">Last updated: —</p>
+          <div class="syshealth-grid" id="healthCardsContainer"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- ========== AUDIT TRAIL ========== -->
+      <div class="page-section" id="page-audit-trail">
+        <div>
+          <div class="audit-header">
+            <h1>Audit Trail</h1>
+            <button class="refresh-btn" id="auditRefreshBtn">Refresh</button>
+            <button class="pdf-btn" id="auditPdfBtn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+
+          </div>
+          <p class="last-updated" id="auditLastUpdated">Last updated: —</p>
+          <div class="audit-table-container" id="auditTableContainer">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

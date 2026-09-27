@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/reports.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Extra styles for page switching, active states, and empty messages -->
+  <style>
+    .page-section { display: none; }
+    .page-section.active-page { display: block; }
+    .dashboard-sidebar li a.active-link {
+      background: var(--bg-light);
+      color: var(--primary-teal);
+      border-right: 4px solid var(--primary-teal);
+    }
+    .no-config-msg .load-more-btn { cursor: pointer; }
+    .empty-message {
+      padding: 2rem;
+      text-align: center;
+      color: var(--primary-dark);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container" id="app">
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="dashboard-navbar">
+      <div class="nav-brand"><h2>User Panel</h2></div>
+      <div class="nav-center"><span class="welcome" id="welcomeMsg">Welcome: -----</span></div>
+      <div class="nav-right">
+        <div class="user-dropdown">
+          <button class="dropdown-btn" id="profileBtn">Manage Profile</button>
+          <button class="dropdown-btn logout" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="dashboard-layout">
+
+      <!-- SIDEBAR -->
+      <aside class="dashboard-sidebar" id="sidebar">
+        <ul>
+          <li><a href="javascript:void(0)" data-page="overview" class="active-link">Overview</a></li>
+          <li><a href="javascript:void(0)" data-page="analytics">Transaction Data</a></li>
+          <li><a href="javascript:void(0)" data-page="reports">Reports</a></li>
+          <li><a href="javascript:void(0)" data-page="controls">API/Controls</a></li>
+          <li><a href="javascript:void(0)" data-page="support">FAQs / Support</a></li>
+        </ul>
+      </aside>
+
+      <!-- CONTENT -->
+      <main class="dashboard-content" id="mainContent">
+
+        <!-- ===== OVERVIEW ===== -->
+        <div class="page-section active-page" id="page-overview">
+          <div class="overview">
+            <div class="overview-header">
+              <h1>Overview</h1>
+              <button class="refresh-btn" id="overviewRefreshBtn">Refresh</button>
+            </div>
+            <p class="source-badge" id="overviewSource">Data source: —</p>
+            <p class="last-updated" id="overviewLastUpdated">Last updated: —</p>
+            <div class="stats-grid" id="statsGrid">
+              <div class="stat-card"><div class="stat-info"><p class="stat-number" id="statTotal">0</p><h3>Total Ruled</h3></div></div>
+              <div class="stat-card flagged"><div class="stat-info"><p class="stat-number" id="statFlagged">0</p><h3>Total Flagged</h3></div></div>
+              <div class="stat-card high-risk"><div class="stat-info"><p class="stat-number" id="statHighRisk">0</p><h3>High Risk</h3></div></div>
+              <div class="stat-card low-risk"><div class="stat-info"><p class="stat-number" id="statLowRisk">0</p><h3>Low Risk</h3></div></div>
+              <div class="stat-card fraud"><div class="stat-info"><p class="stat-number" id="statFraud" style="color:#e74c3c;">0</p><h3>Fraud Detected</h3></div></div>
+              <div class="stat-card normal"><div class="stat-info"><p class="stat-number" id="statNormal" style="color:#2ecc71;">0</p><h3>Normal Transactions</h3></div></div>
+            </div>
+            <div class="insights-row">
+              <div class="insight-card recent-activity">
+                <div class="insight-card-header"><h3>Recent Ruled Transactions</h3><span class="view-all-link" data-nav="analytics">View All →</span></div>
+                <div id="recentRuledContainer"><div class="loading-small">Loading...</div></div>
+              </div>
+              <div class="insight-card recent-activity">
+                <div class="insight-card-header"><h3>Recent Processed Transactions</h3><span class="view-all-link" data-nav="analytics">View All →</span></div>
+                <div id="recentProcessedContainer"><div class="loading-small">Loading...</div></div>
+              </div>
+              <div class="insight-card tips-card">
+                <div class="insight-card-header"><h3>Did you know?</h3></div>
+                <div class="tips-carousel">
+                  <div class="tip-slide" id="tipSlide">Use the filter buttons to focus on specific risk levels.</div>
+                  <div class="tip-dots" id="tipDots"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== ANALYTICS ===== -->
+        <div class="page-section" id="page-analytics">
+          <div class="analytics">
+            <div class="analytics-header">
+              <h1>All Transaction Data</h1>
+              <button class="refresh-btn" id="analyticsRefreshBtn">Refresh</button>
+            </div>
+            <p class="source-badge" id="analyticsSource">Data source: —</p>
+            <p class="last-updated" id="analyticsLastUpdated">Last updated: —</p>
+            <div class="tabs" id="analyticsTabs">
+              <button class="tab-active" data-tab="ruled">Ruled (0)</button>
+              <button class="tab" data-tab="processed">Processed (0)</button>
+              <button class="tab" data-tab="flagged">Flagged (0)</button>
+              <button class="tab" data-tab="high">High Risk (0)</button>
+              <button class="tab" data-tab="medium">Medium Risk (0)</button>
+              <button class="tab" data-tab="low">Low Risk (0)</button>
+              <button class="tab" data-tab="fraud">Fraud (0)</button>
+              <button class="tab" data-tab="normal">Normal (0)</button>
+            </div>
+            <div class="tab-content" id="analyticsContent"></div>
+          </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- REPORTS -->
+        <!-- =================================================================== -->
+        <div class="page-section" id="page-reports">
+          <div class="reports">
+
+            <!-- HEADER -->
+            <div class="reports-header">
+              <div>
+                <h1>Fraud Intelligence Report</h1>
+                <p class="source-badge" id="reportSourceBadge">Data source: —</p>
+                <p class="last-updated" id="reportLastUpdated">Last updated: —</p>
+              </div>
+              <div class="header-actions">
+                <select id="pdfPeriodSelect" class="pdf-period-select">
+                  <option value="weekly">Weekly Report</option>
+                  <option value="monthly" selected>Monthly Report</option>
+                  <option value="yearly">Yearly Report</option>
+                </select>
+                <button class="refresh-btn" id="reportsRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button class="pdf-btn" id="pdfExportBtn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+              </div>
+            </div>
+
+            <!-- ===== TOP ROW ===== -->
+            <div class="top-row">
+
+              <!-- LEFT: Risk Overview -->
+              <div class="risk-overview">
+                <!-- 4 Summary Cards -->
+                <div class="summary-cards" id="summaryCards">
+                  <!-- Rendered by JS -->
+                </div>
+                <!-- Fraud Trend Chart -->
+                <div class="trend-chart-wrapper">
+                  <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Fraud & Suspicious Trend</h3>
+                    <div class="trend-filters">
+                      <button class="trend-filter active" data-period="weekly">Weekly</button>
+                      <button class="trend-filter" data-period="monthly">Monthly</button>
+                      <button class="trend-filter" data-period="yearly">Yearly</button>
+                    </div>
+                  </div>
+                  <div style="position:relative; height:180px;">
+                    <canvas id="fraudTrendChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT: Fraud Alert + Recent Suspicious -->
+              <div class="right-panel">
+
+                <!-- Fraud Alert Card -->
+                <div class="fraud-alert-card">
+                  <h3><i class="fas fa-shield-alt"></i> Fraud Alert</h3>
+                  <div class="alert-levels">
+                    <span class="level high"><span class="dot"></span> High</span>
+                    <span class="level medium"><span class="dot"></span> Medium</span>
+                    <span class="level low"><span class="dot"></span> Low</span>
+                  </div>
+                  <div class="gauge-container">
+                    <div class="gauge-track" id="fraudGauge">
+                      <div class="gauge-needle" style="transform: rotate(0deg);"></div>
+                    </div>
+                    <div class="gauge-marks">
+                      <span>Low</span>
+                      <span>Medium</span>
+                      <span>High</span>
+                    </div>
+                  </div>
+                  <div class="gauge-label" id="gaugeLabel">Moderate</div>
+                  <div class="total-suspicious" id="totalSuspicious">Total Suspicious: 0</div>
+                </div>
+
+                <!-- Recent Suspicious -->
+                <div class="recent-suspicious">
+                  <div class="recent-header">
+                    <h3><i class="fas fa-clock"></i> Recent Suspicious</h3>
+                    <button class="view-all-btn" id="viewAllBtn">View All →</button>
+                  </div>
+                  <div id="recentSuspiciousList">
+                    <div class="loading-small">Loading...</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ===== MIDDLE ROW ===== -->
+            <div class="middle-row">
+
+              <!-- LEFT: Rules Bar Chart -->
+              <div class="rules-section">
+                <div class="chart-header">
+                  <h3><i class="fas fa-gavel"></i> Rules Triggered</h3>
+                  <div class="rules-filters">
+                    <input type="date" id="rulesStartDate" />
+                    <input type="date" id="rulesEndDate" />
+                    <button class="apply-filter-btn" id="rulesApplyBtn">Apply</button>
+                  </div>
+                </div>
+                <div style="position:relative; height:160px;">
+                  <canvas id="rulesBarChart"></canvas>
+                </div>
+              </div>
+
+              <!-- RIGHT: Processed Stats -->
+              <div class="processed-section">
+                <h3><i class="fas fa-chart-bar"></i> Processed Transactions</h3>
+                <div class="chart-container chart-container-bar">
+                  <canvas id="processedBarChart"></canvas>
+                </div>
+                <div class="chart-container chart-container-bubble">
+                  <canvas id="bubbleChart"></canvas>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ===== BOTTOM ROW ===== -->
+            <div class="bottom-row">
+
+              <!-- LEFT: All Suspicious Transactions -->
+              <div class="all-transactions">
+                <div class="all-header">
+                  <h3><i class="fas fa-list"></i> All Suspicious Transactions</h3>
+                  <div class="all-filters">
+                    <select id="verdictFilter">
+                      <option value="all">All</option>
+                      <option value="fraud">Fraud</option>
+                      <option value="suspicious">Suspicious</option>
+                      <option value="medium">Medium Risk</option>
+                      <option value="false_positive">False Positive</option>
+                    </select>
+                    <select id="dateFilterType">
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                    <button class="apply-filter-btn" id="allTransactionsApplyBtn">Apply</button>
+                  </div>
+                </div>
+                <div class="table-scroll">
+                  <table class="suspicious-table" id="allSuspiciousTable">
+                    <thead>
+                      <tr><th>ID</th><th>Risk</th><th>Score</th><th>Rules</th><th>Date</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- RIGHT: Merchants + Peak Hours -->
+              <div class="side-stats">
+                <div class="merchants-card">
+                  <h4><i class="fas fa-store"></i> Top Flagged Merchants</h4>
+                  <ul id="topMerchantsList"></ul>
+                </div>
+                <div class="peak-hours-card">
+                  <h4><i class="fas fa-clock"></i> Peak Fraud Hours</h4>
+                  <div id="peakHoursInfo">Loading...</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+        
+        <!-- ===== CONTROLS ===== -->
+        <div class="page-section" id="page-controls">
+          <div class="controls-page">
+            <h1>Controls</h1>
+            <div class="control-tabs">
+              <button class="control-tab active" data-panel="config">API Connection</button>
+              <button class="control-tab" data-panel="loadtest">Load Test</button>
+            </div>
+            <div class="sliding-panels">
+              <!-- Config Panel -->
+              <div class="slide-panel active" data-panel="config">
+                <div class="loadtest-panel">
+                  <h3>API Connection</h3>
+                  <div class="config-form">
+                    <div>
+                      <label for="apiUrl">API URL</label>
+                      <input id="apiUrl" type="text" placeholder="https://your-api.com" />
+                    </div>
+                    <div>
+                      <label for="anonKey">Anon Key</label>
+                      <input id="anonKey" type="text" placeholder="Your anonymous key" />
+                    </div>
+                    <div>
+                      <label for="serviceRoleKey">Service Role Key</label>
+                      <input id="serviceRoleKey" type="text" placeholder="Your service role key" />
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                      <button id="verifyCredsBtn" class="cyber-button" style="max-width: 200px;">Verify &amp; Save Credentials</button>
+                    </div>
+                    <p class="config-msg" id="configMsg"></p>
+                    <hr style="border-color: var(--accent-beige); margin: 1rem 0;" />
+                    <div class="source-row">
+                      <label for="sourceSystem">Source System</label>
+                      <input id="sourceSystem" type="text" placeholder="e.g mpesa, bank, airtel, wallet" />
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                      <button id="saveSourceBtn" class="cyber-button" style="max-width: 200px;">Save Source System</button>
+                    </div>
+                    <p class="config-msg" id="sourceMsg"></p>
+                  </div>
+                </div>
+              </div>
+              <!-- Load Test Panel -->
+              <div class="slide-panel" data-panel="loadtest">
+                <div class="loadtest-panel">
+                  <h3>Load Test</h3>
+                  <p>Source: <strong id="loadTestSource">Not configured</strong></p>
+                  <div class="input-group">
+                    <label for="loadLimit">Number of transactions to load:</label>
+                    <input id="loadLimit" type="number" value="1000" min="1" max="10000" />
+                  </div>
+                  <div class="button-group">
+                    <button class="start-btn" id="startLoadTestBtn">Start Load Test</button>
+                    <button class="stop-btn" id="stopLoadTestBtn" style="display:none;">Stop Load Test</button>
+                  </div>
+                  <p class="config-msg" id="loadTestMsg"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SUPPORT ===== -->
+        <div class="page-section" id="page-support">
+          <div class="support">
+            <h1>FAQs And Support</h1>
+            <div class="faq-list" id="faqList"></div>
+            <div class="support-contact">
+              <h3>Still need help?</h3>
+              <p>Email us at <a href="#">support@IFDSmulei.com</a></p>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ===== PROFILE MODAL ===== -->
+    <div class="modal-overlay" id="profileModal" style="display:none;">
+      <div class="modal-content">
+        <h3>Manage Profile</h3>
+        <div id="profileError" class="error-msg" style="display:none;"></div>
+        <div id="profileSuccess" class="success-msg" style="display:none;"></div>
+        <form id="profileForm">
+          <label>Email</label>
+          <input type="email" id="profileEmail" required />
+          <label>New Password (leave blank to keep current)</label>
+          <input type="password" id="profilePassword" />
+          <label>Confirm Password</label>
+          <input type="password" id="profileConfirm" />
+          <div class="modal-buttons">
+            <button type="submit" id="profileSubmitBtn">Update</button>
+            <button type="button" id="profileCancelBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESS POPUP ===== -->
+    <div class="progress-overlay" id="progressPopup" style="display:none;">
+      <div class="progress-popup">
+        <h3 id="progressText">Ingestion started - Raw transactions stored</h3>
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- ===== FINAL POPUP ===== -->
+    <div class="popup-overlay" id="finalPopup" style="display:none;">
+      <div class="popup-content">
+        <h2>Data and reports ready</h2>
+        <p>All transactions have been processed. Head to Reports or Transaction Data.</p>
+        <button class="go-reports-btn" id="finalPopupBtn">View Reports</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/dashboard.js?v=3"></script>
+  <script src="js/reports.js?v=2"></script>
+</body>
+</html>

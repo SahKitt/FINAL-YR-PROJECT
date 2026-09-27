@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pymongo
+python-jose[cryptography]
+bcrypt==4.0.1
+passlib[bcrypt]
+pydantic[email]
+python-dotenv
+requests
+python-multipart
+pyjwt
+httpx
+cryptography
+neo4j

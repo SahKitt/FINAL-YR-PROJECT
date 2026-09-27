@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Terminal</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-container" id="authContainer">
+    <h2 class="cyber-title">ACCESS TERMINAL</h2>
+
+    <!-- ===== TABS ===== -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Login</button>
+      <button class="auth-tab" data-tab="register">Register</button>
+    </div>
+
+    <!-- ===== LOGIN  ===== -->
+    <div class="auth-panel active" id="panel-login">
+      <div id="loginAlert" class="auth-alert" style="display:none;"></div>
+      <form id="loginForm" class="auth-form">
+        <div class="input-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" class="auth-input" id="loginEmail" placeholder="Enter your email" required />
+        </div>
+        <div class="input-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" class="auth-input" id="loginPassword" placeholder="Enter your password" required />
+          <button type="button" class="password-toggle" id="loginToggle">Show</button>
+        </div>
+        <button type="submit" class="cyber-button" id="loginBtn">LOGIN</button>
+      </form>
+      <div class="auth-footer">
+        No access credentials? <a href="#" class="auth-link" data-tab="register">Register</a>
+      </div>
+    </div>
+
+    <!-- ===== REGISTER  ===== -->
+    <div class="auth-panel" id="panel-register">
+      <div id="registerAlert" class="auth-alert" style="display:none;"></div>
+      <form id="registerForm" class="auth-form">
+        <div class="form-columns">
+          <!-- LEFT COLUMN -->
+          <div class="form-column">
+            <div class="input-group" data-field="orgName">
+              <label for="regOrg">Organization Name</label>
+              <input type="text" class="auth-input" id="regOrg" placeholder="Company Name" required />
+            </div>
+            <div class="input-group" data-field="email">
+              <label for="regEmail">Email Address</label>
+              <input type="email" class="auth-input" id="regEmail" placeholder="you@example.com" required />
+            </div>
+            <div class="input-group" data-field="physicalAddress">
+              <label for="regAddress">Physical Address</label>
+              <input type="text" class="auth-input" id="regAddress" placeholder="PO Box 12345" required />
+            </div>
+            <div class="input-group" data-field="contactPhone">
+              <label for="regPhone">Contact Phone</label>
+              <input type="tel" class="auth-input" id="regPhone" placeholder="0712345678" required />
+            </div>
+          </div>
+
+          <div class="vertical-divider"></div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="form-column">
+            <div class="input-group input-group--stack" data-field="companyRegNo">
+              <label for="regRegNo">Company Registration Number</label>
+              <input type="text" class="auth-input" id="regRegNo" placeholder="--/--/----" required />
+              <div class="file-upload">
+                <label for="certFile">Upload Certificate of Incorporation</label>
+                <input type="file" id="certFile" accept=".pdf,.jpg,.png" />
+                <span class="file-name" id="certFileName"></span>
+              </div>
+            </div>
+
+            <div class="input-group input-group--stack" data-field="kraPin">
+              <label for="regKraPin">KRA PIN</label>
+              <input type="text" class="auth-input" id="regKraPin" placeholder="A123456789B" required />
+              <div class="file-upload">
+                <label for="kraCertFile">Upload KRA Certificate</label>
+                <input type="file" id="kraCertFile" accept=".pdf,.jpg,.png" />
+                <span class="file-name" id="kraCertFileName"></span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="regPassword">Password</label>
+              <input type="password" class="auth-input" id="regPassword" placeholder="Min. 8 chars" required />
+              <button type="button" class="password-toggle" id="regToggle">Show</button>
+            </div>
+
+            <div class="strength-meter">
+              <div class="strength-fill" id="strengthFill"></div>
+              <div class="strength-text" id="strengthText">STRENGTH: —</div>
+            </div>
+
+            <div class="input-group">
+              <label for="regConfirm">Confirm Password</label>
+              <input type="password" class="auth-input" id="regConfirm" placeholder="Confirm password" required />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="cyber-button" id="registerBtn">REGISTER</button>
+      </form>
+      <div class="auth-footer">
+        Already have clearance? <a href="#" class="auth-link" data-tab="login">Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APPROVAL POPUP ===== -->
+<div class="popup-overlay" id="approvalPopup" style="display:none;">
+  <div class="popup-content">
+    <h2>Registration Submitted</h2>
+    <p>Your registration has been submitted successfully.</p>
+    <p>An admin will review and approve your account. You will be able to log in once approved.</p>
+    <button class="cyber-button" id="popupOkBtn">Understood</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    // ---------- DOM REFS ----------
+    const tabs = document.querySelectorAll('.auth-tab');
+    const container = document.getElementById('authContainer');
+    const loginAlert = document.getElementById('loginAlert');
+    const registerAlert = document.getElementById('registerAlert');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const loginToggle = document.getElementById('loginToggle');
+    const regToggle = document.getElementById('regToggle');
+    const approvalPopup = document.getElementById('approvalPopup');
+    const popupOkBtn = document.getElementById('popupOkBtn');
+
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+
+    const regOrg = document.getElementById('regOrg');
+    const regEmail = document.getElementById('regEmail');
+    const regAddress = document.getElementById('regAddress');
+    const regPhone = document.getElementById('regPhone');
+    const regRegNo = document.getElementById('regRegNo');
+    const regKraPin = document.getElementById('regKraPin');
+    const regPassword = document.getElementById('regPassword');
+    const regConfirm = document.getElementById('regConfirm');
+    const certFile = document.getElementById('certFile');
+    const kraCertFile = document.getElementById('kraCertFile');
+    const certFileName = document.getElementById('certFileName');
+    const kraCertFileName = document.getElementById('kraCertFileName');
+    const strengthFill = document.getElementById('strengthFill');
+    const strengthText = document.getElementById('strengthText');
+
+    // ---------- UTILITY ----------
+    function showAlert(el, msg, type) {
+      el.textContent = msg;
+      el.className = 'auth-alert ' + type;
+      el.style.display = 'block';
+    }
+
+    function hideAlert(el) {
+      el.style.display = 'none';
+    }
+
+    function getVal(el) { return el.value.trim(); }
+
+    function setLoading(btn, loading) {
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader"></span>';
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.id === 'loginBtn' ? 'LOGIN' : 'REGISTER';
+      }
+    }
+
+    // ---------- VALIDATION HELPERS ----------
+    function validatePhone(phone) {
+      return /^[0-9]{10}$/.test(phone);
+    }
+
+    function validateRegNo(regNo) {
+      // 13-14 characters, any alphanumeric or special char (spaces, hyphens, slashes allowed)
+      return regNo.length >= 13 && regNo.length <= 14 && /^[A-Za-z0-9\-/ ]+$/.test(regNo);
+    }
+
+    function validateKraPin(kra) {
+      // exactly 11 chars, uppercase letters and digits only
+      return /^[A-Z0-9]{11}$/.test(kra);
+    }
+
+    function validateAddress(address) {
+      // PO Box format: "PO Box 123", "P.O. Box 123-00100", "Private Bag 00100"
+      return /^(PO|P\.O\.|Private Bag|P O)\.?\s*[Bb]ox\s*\d+([\s-]\d{5})?$/i.test(address);
+    }
+
+    // ---------- VALIDATION SETUP ----------
+    const regFields = {
+      orgName: { el: regOrg, group: document.querySelector('[data-field="orgName"]') },
+      email: { el: regEmail, group: document.querySelector('[data-field="email"]') },
+      physicalAddress: { el: regAddress, group: document.querySelector('[data-field="physicalAddress"]') },
+      contactPhone: { el: regPhone, group: document.querySelector('[data-field="contactPhone"]') },
+      companyRegNo: { el: regRegNo, group: document.querySelector('[data-field="companyRegNo"]') },
+      kraPin: { el: regKraPin, group: document.querySelector('[data-field="kraPin"]') },
+    };
+
+    const touched = {
+      orgName: false,
+      email: false,
+      physicalAddress: false,
+      contactPhone: false,
+      companyRegNo: false,
+      kraPin: false,
+      certFile: false,
+      kraCertFile: false,
+    };
+
+    function isValid(field) {
+      const f = regFields[field];
+      if (!f) return true;
+      const val = f.el.value.trim();
+      if (field === 'contactPhone') {
+        return val === '' || validatePhone(val);
+      }
+      if (field === 'companyRegNo') {
+        return val === '' || validateRegNo(val);
+      }
+      if (field === 'kraPin') {
+        return val === '' || validateKraPin(val);
+      }
+      if (field === 'physicalAddress') {
+        return val === '' || validateAddress(val);
+      }
+      return val !== '';
+    }
+
+    function updateTooltip(field) {
+      const f = regFields[field];
+      if (!f) return;
+      const group = f.group;
+      let isInvalid = false;
+      let msg = 'Please fill in this section correctly.';
+
+      if (field === 'companyRegNo') {
+        const hasReg = regRegNo.value.trim() !== '';
+        const hasCert = certFile.files && certFile.files.length > 0;
+        if (touched.companyRegNo && !hasReg) isInvalid = true;
+        else if (touched.certFile && !hasCert) isInvalid = true;
+        else isInvalid = false;
+        if (isInvalid) msg = 'Reg No must be 13‑14 characters.';
+      } else if (field === 'kraPin') {
+        const hasPin = regKraPin.value.trim() !== '';
+        const hasCert = kraCertFile.files && kraCertFile.files.length > 0;
+        if (touched.kraPin && !hasPin) isInvalid = true;
+        else if (touched.kraCertFile && !hasCert) isInvalid = true;
+        else isInvalid = false;
+        if (isInvalid) msg = 'KRA PIN must be 11 uppercase letters/digits.';
+      } else if (field === 'contactPhone') {
+        isInvalid = touched[field] && !validatePhone(f.el.value.trim());
+        if (isInvalid) msg = 'Phone must be exactly 10 digits.';
+      } else if (field === 'physicalAddress') {
+        isInvalid = touched[field] && !validateAddress(f.el.value.trim());
+        if (isInvalid) msg = 'Use PO Box format (e.g., PO Box 123).';
+      } else {
+        isInvalid = touched[field] && !isValid(field);
+        if (isInvalid) msg = 'This field is required.';
+      }
+
+      group.classList.toggle('has-error', isInvalid);
+      if (isInvalid) {
+        group.setAttribute('data-tooltip', msg);
+      } else {
+        group.removeAttribute('data-tooltip');
+      }
+    }
+
+    function markTouched(field) {
+      touched[field] = true;
+      updateTooltip(field);
+    }
+
+    function clearTouched(field) {
+      touched[field] = false;
+      updateTooltip(field);
+    }
+
+    function clearAllErrors() {
+      Object.keys(touched).forEach(key => { touched[key] = false; });
+      Object.keys(regFields).forEach(f => updateTooltip(f));
+      updateTooltip('companyRegNo');
+      updateTooltip('kraPin');
+    }
+
+    // ---------- TAB SWITCHING ----------
+    function switchTab(tabName) {
+      document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById('panel-' + tabName);
+      if (panel) panel.classList.add('active');
+
+      tabs.forEach(t => t.classList.remove('active'));
+      const activeTab = document.querySelector('.auth-tab[data-tab="' + tabName + '"]');
+      if (activeTab) activeTab.classList.add('active');
+
+      container.classList.toggle('wide', tabName === 'register');
+      hideAlert(loginAlert);
+      hideAlert(registerAlert);
+      clearAllErrors();
+    }
+
+    // Initial setup
+    const initialTab = document.querySelector('.auth-tab.active');
+    if (initialTab) switchTab(initialTab.dataset.tab);
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        switchTab(this.dataset.tab);
+      });
+    });
+
+    document.querySelectorAll('.auth-link[data-tab]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        switchTab(this.dataset.tab);
+      });
+    });
+
+    // ---------- PASSWORD TOGGLES ----------
+    loginToggle.addEventListener('click', function() {
+      const field = document.getElementById('loginPassword');
+      field.type = field.type === 'password' ? 'text' : 'password';
+      this.textContent = field.type === 'password' ? 'Show' : 'Hide';
+    });
+
+    regToggle.addEventListener('click', function() {
+      const passField = document.getElementById('regPassword');
+      const confirmField = document.getElementById('regConfirm');
+      const isPassword = passField.type === 'password';
+      passField.type = isPassword ? 'text' : 'password';
+      confirmField.type = isPassword ? 'text' : 'password';
+      this.textContent = isPassword ? 'Hide' : 'Show';
+    });
+
+    // ---------- PASSWORD STRENGTH ----------
+    function updateStrength() {
+      const pwd = regPassword.value;
+      if (!pwd) {
+        strengthFill.style.width = '0%';
+        strengthText.textContent = 'STRENGTH: —';
+        strengthText.style.color = '#3a6';
+        return;
+      }
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (pwd.length >= 12) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+      const pct = Math.min((score / 5) * 100, 100);
+      let label, color;
+      if (score >= 4) { label = 'STRONG'; color = '#0fa'; }
+      else if (score >= 3) { label = 'MEDIUM'; color = '#fa0'; }
+      else if (score >= 2) { label = 'LOW'; color = '#f90'; }
+      else { label = 'WEAK'; color = '#f44'; }
+
+      strengthFill.style.width = pct + '%';
+      strengthFill.style.backgroundColor = color;
+      strengthText.textContent = 'STRENGTH: ' + label;
+      strengthText.style.color = color;
+    }
+
+    regPassword.addEventListener('input', updateStrength);
+
+    // ---------- FILE UPLOAD NAMES ----------
+    certFile.addEventListener('change', function() {
+      certFileName.textContent = this.files[0] ? this.files[0].name : '';
+      if (this.files.length > 0) {
+        touched.certFile = false;
+        updateTooltip('companyRegNo');
+      }
+    });
+
+    kraCertFile.addEventListener('change', function() {
+      kraCertFileName.textContent = this.files[0] ? this.files[0].name : '';
+      if (this.files.length > 0) {
+        touched.kraCertFile = false;
+        updateTooltip('kraPin');
+      }
+    });
+
+    // ---------- INPUT EVENTS: CLEAR/UPDATE TOOLTIP ----------
+    Object.keys(regFields).forEach(key => {
+      const f = regFields[key];
+      f.el.addEventListener('input', function() {
+        if (touched[key]) {
+          updateTooltip(key);
+        }
+      });
+    });
+
+    // ---------- DUPLICATE ORG CHECK ----------
+    let dupCheckTimeout = null;
+    regOrg.addEventListener('input', function() {
+      clearTimeout(dupCheckTimeout);
+      const name = this.value.trim();
+      if (!name) return;
+      dupCheckTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch('/auth/check-org?name=' + encodeURIComponent(name));
+          const data = await res.json();
+          if (data.exists) {
+            showAlert(registerAlert, 'An organization with a similar name already exists. Please use a unique name.', 'error');
+          } else {
+            hideAlert(registerAlert);
+          }
+        } catch (e) { /* ignore */ }
+      }, 500);
+    });
+
+    // ---------- LOGIN ----------
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      hideAlert(loginAlert);
+      setLoading(loginBtn, true);
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: getVal(loginEmail),
+            password: loginPassword.value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Login failed');
+
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        if (data.user.role === 'admin') {
+          window.location.href = '/admin.html';
+        } else {
+          window.location.href = '/dashboard.html';
+        }
+      } catch (err) {
+        showAlert(loginAlert, err.message, 'error');
+        setLoading(loginBtn, false);
+      }
+    });
+
+    // ---------- REGISTER ----------
+    registerForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      hideAlert(registerAlert);
+
+      // 1. Validate password match
+      if (regPassword.value !== regConfirm.value) {
+        showAlert(registerAlert, 'Password and confirmation do not match', 'error');
+        return;
+      }
+
+      // 2. Validate password strength
+      const pwd = regPassword.value;
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (pwd.length >= 12) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      if (score < 3) {
+        showAlert(registerAlert, 'Password too weak. Use at least 8 chars, mix letters, numbers, symbols.', 'error');
+        return;
+      }
+
+      // 3. Validate specific fields
+      const phone = getVal(regPhone);
+      if (!validatePhone(phone)) {
+        showAlert(registerAlert, 'Phone must be exactly 10 digits.', 'error');
+        return;
+      }
+
+      const regNo = getVal(regRegNo);
+      if (!validateRegNo(regNo)) {
+        showAlert(registerAlert, 'Company Registration No. must be 13-14 characters.', 'error');
+        return;
+      }
+
+      const kra = getVal(regKraPin);
+      if (!validateKraPin(kra)) {
+        showAlert(registerAlert, 'KRA PIN must be exactly 11 uppercase letters/digits.', 'error');
+        return;
+      }
+
+      const address = getVal(regAddress);
+      if (!validateAddress(address)) {
+        showAlert(registerAlert, 'Please enter a valid PO Box address (e.g., PO Box 123).', 'error');
+        return;
+      }
+
+      // 4. Check required fields + files
+      const required = ['orgName', 'email', 'physicalAddress', 'contactPhone', 'companyRegNo', 'kraPin'];
+      let hasError = false;
+
+      // Reset touched flags
+      Object.keys(touched).forEach(key => { touched[key] = false; });
+
+      required.forEach(f => {
+        if (!isValid(f)) {
+          touched[f] = true;
+          hasError = true;
+        }
+      });
+
+      // Check file uploads
+      if (!certFile.files || certFile.files.length === 0) {
+        touched.certFile = true;
+        hasError = true;
+      }
+      if (!kraCertFile.files || kraCertFile.files.length === 0) {
+        touched.kraCertFile = true;
+        hasError = true;
+      }
+
+      // Update tooltips
+      Object.keys(regFields).forEach(f => updateTooltip(f));
+      updateTooltip('companyRegNo');
+      updateTooltip('kraPin');
+
+      if (hasError) {
+        showAlert(registerAlert, 'Please fill in all required fields correctly.', 'error');
+        return;
+      }
+
+      // 5. All valid – clear errors and submit
+      clearAllErrors();
+      setLoading(registerBtn, true);
+
+      try {
+        const formData = new FormData();
+        formData.append('organization_name', getVal(regOrg));
+        formData.append('email', getVal(regEmail));
+        formData.append('physical_address', address);
+        formData.append('contact_phone', phone);
+        formData.append('company_reg_no', regNo);
+        formData.append('kra_pin', kra);
+        formData.append('password', regPassword.value);
+        if (certFile.files[0]) formData.append('cert_file', certFile.files[0]);
+        if (kraCertFile.files[0]) formData.append('kra_cert_file', kraCertFile.files[0]);
+
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Registration failed');
+
+        hideAlert(registerAlert);
+        approvalPopup.style.display = 'flex';
+        setLoading(registerBtn, false);
+      } catch (err) {
+        showAlert(registerAlert, err.message, 'error');
+        setLoading(registerBtn, false);
+      }
+    });
+
+    // ---------- APPROVAL POPUP ----------
+    popupOkBtn.addEventListener('click', function() {
+      approvalPopup.style.display = 'none';
+      window.location.href = '/login';
+    });
+
+    // ---------- URL PARAMETER ----------
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'register') {
+      setTimeout(() => switchTab('register'), 200);
+    }
+
+    console.log('Auth page initialized.');
+  })();
+</script>
+
+</body>
+</html>
